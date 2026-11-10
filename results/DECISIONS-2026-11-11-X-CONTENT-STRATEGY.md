@@ -51,33 +51,44 @@
 
 ## 4. 发布节奏
 
-同日早些时候的口径，保留在此，默认配额已被下面的修订取代：
+### 早先口径（保留，已不是默认）
 
 - 每两条基于同行 AI 资讯的帖，发一条跨行业帖。
 - 子睿点名的跨行业例子：抽象事件，以及国内风土人情。
-- 不发情色，不碰政治与擦边。
 - 建议循环：同行、同行、跨行业，然后重复。
 
-### 同日修订（2026-11-11 稍后，子睿语音拍板）
+### 同日中段口径（保留，已不是默认）
 
-自本修订起，每周定额固定为 6 条，以此为准：
+2026-11-11 稍后曾把每周定额写成只计条数的 6 条：4 条轮换池 + 2 条全站爆款。它取代过上面的跨行业配比，但自己也被下面的穿插顺序取代。不要把「自己做的」算成第二条爆款。
 
-- 4 条来自同行轮换池。
-- 2 条来自全站 X 爆款 / 高互动帖（推特爆款），不限于轮换池。
-- 合计 6 条。这取代「每两条同行 AI 资讯，配一条跨行业（抽象事件 / 国内风土人情）」作为默认每周配额。跨行业此前指定过，此处不删，只是不再占默认配额。
-- 轮换池帖仍守四小时窗口：源帖发出后四小时内处理并改写。
+### 现行口径（2026-11-11 再稍后，子睿拍板）
+
+现行节奏是固定穿插，走完再从头。以此为准：
+
+1. 同行内容，用自己的方法重写（真实测评后再重写，不整段粘贴）。
+2. 再一条同行重写。
+3. 一条全站爆帖的 copy（改写，不是原文粘贴）。
+4. 再一条同行重写。
+5. 一条自己做的内容（原创。不是轮换池改写，也不是全站爆帖 copy）。
+6. 回到第 1 步，继续轮。
+
+每周仍发 6 条：周一到周六各一条；周日休息，只有本周缺了槽才补，不额外堆量。按这个顺序排满一周，就是 4 条同行重写 + 1 条全站爆帖 copy + 1 条自己做的原创。这细化并取代两件旧口径：（a）「每两条同行补一条跨行业」；（b）「4 条轮换池 + 2 条爆款」。
+
+- 同行重写仍是反应式：在既有观察窗口里，源帖发出后四小时内改写发出。
+- 自己做的那一条可以用固定时间。全站爆帖那一条从全站扫描里选，改写，不粘贴原文。
 - 不发情色，不碰政治与擦边。
-- 排期工具启用前，现行日历以 `results/X-CONTENT-SCHEDULE-2026-11-11.md` 为准。启用后，把这个每周 4+2 定额装进排期工具。
+- 星期怎么落，见 `results/X-CONTENT-SCHEDULE-2026-11-11.md`。
 
-## 5. 用 GitHub 上已找到的排期插件管发布节奏
+## 5. 排期：不用 Publora
 
-这些工具只是已找到，尚未安装，也尚未启用。还待 Publora Pro 与账号授权。本文不写插件配置。未经子睿提出，且未经老6（Muse）审核放行，不得安装。
+2026-11-11 同日再稍后拍板：不用 Publora，也不用 Publora Pro。它不是在用的排期器，也不是待启用。排期用免费办法：Grok Bot 的系统定时任务（routines），不走付费 Publora。
 
-- 主排期 / 发布工具，来自 [sergebulaev/x-skills](https://github.com/sergebulaev/x-skills)：可选 Publora 做定时发布，外加 Chrome 扩展 [Publora — Schedule Social Posts](https://chromewebstore.google.com/detail/publora-%E2%80%94-schedule-social/pkneoakicplhpdlhchgobccmeelhboai)。
-- 配套的日历 / 打法 skill：[Darthflute/social-calendar-skill](https://github.com/Darthflute/social-calendar-skill)。
-- 不要和 kangarooking/x-skills 搞混。
-- 官方发帖仍走官方 X 连接，由 X运营官执行；不通过浏览器登录 x.com，也不经品牌调性调研师。
-- 每周 4 条轮换池 + 2 条推特爆款，等排期工具启用后再装进去。启用之前，现行排期就是 `results/X-CONTENT-SCHEDULE-2026-11-11.md`。
+下面两处只是早前调研，不用于发帖：
+
+- [sergebulaev/x-skills](https://github.com/sergebulaev/x-skills) 与 Publora，以及 Chrome 扩展 [Publora — Schedule Social Posts](https://chromewebstore.google.com/detail/publora-%E2%80%94-schedule-social/pkneoakicplhpdlhchgobccmeelhboai)。
+- [Darthflute/social-calendar-skill](https://github.com/Darthflute/social-calendar-skill)。
+
+不把它们装来发帖，也不写成插件配置。不要和 kangarooking/x-skills 搞混。官方发帖仍走官方 X 连接；不通过浏览器登录 x.com，也不经品牌调性调研师，更不经 Publora。
 
 ## 红线
 
@@ -89,5 +100,5 @@
 
 ## 执行
 
-- 发帖继续由「X运营官」按本策略执行。
-- 自 2026-11-11 起，本文件是内容策略准绳：决定做什么，以及何时把它排期发出。
+- 发帖继续由「X运营官」执行，走官方 X 连接，不经 Publora。
+- 自 2026-11-11 当日起，内容策略和排期以本文件与 `results/X-CONTENT-SCHEDULE-2026-11-11.md` 为准。排期由 Grok Bot 的系统定时任务（routines）按现行穿插顺序执行。
