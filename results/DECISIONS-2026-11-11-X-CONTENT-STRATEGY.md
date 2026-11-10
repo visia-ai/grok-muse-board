@@ -51,20 +51,33 @@
 
 ## 4. 发布节奏
 
+同日早些时候的口径，保留在此，默认配额已被下面的修订取代：
+
 - 每两条基于同行 AI 资讯的帖，发一条跨行业帖。
 - 子睿点名的跨行业例子：抽象事件，以及国内风土人情。
 - 不发情色，不碰政治与擦边。
 - 建议循环：同行、同行、跨行业，然后重复。
-- 用第 5 节的排期工具卡住这个比例，不只靠四小时窗口。
+
+### 同日修订（2026-11-11 稍后，子睿语音拍板）
+
+自本修订起，每周定额固定为 6 条，以此为准：
+
+- 4 条来自同行轮换池。
+- 2 条来自全站 X 爆款 / 高互动帖（推特爆款），不限于轮换池。
+- 合计 6 条。这取代「每两条同行 AI 资讯，配一条跨行业（抽象事件 / 国内风土人情）」作为默认每周配额。跨行业此前指定过，此处不删，只是不再占默认配额。
+- 轮换池帖仍守四小时窗口：源帖发出后四小时内处理并改写。
+- 不发情色，不碰政治与擦边。
+- 排期工具启用前，现行日历以 `results/X-CONTENT-SCHEDULE-2026-11-11.md` 为准。启用后，把这个每周 4+2 定额装进排期工具。
 
 ## 5. 用 GitHub 上已找到的排期插件管发布节奏
 
-本文件不安装任何插件。未经子睿提出，且未经老6（Muse）审核放行，不得安装。放行之后，用下面这些排期工具来管发布节奏。
+这些工具只是已找到，尚未安装，也尚未启用。还待 Publora Pro 与账号授权。本文不写插件配置。未经子睿提出，且未经老6（Muse）审核放行，不得安装。
 
 - 主排期 / 发布工具，来自 [sergebulaev/x-skills](https://github.com/sergebulaev/x-skills)：可选 Publora 做定时发布，外加 Chrome 扩展 [Publora — Schedule Social Posts](https://chromewebstore.google.com/detail/publora-%E2%80%94-schedule-social/pkneoakicplhpdlhchgobccmeelhboai)。
 - 配套的日历 / 打法 skill：[Darthflute/social-calendar-skill](https://github.com/Darthflute/social-calendar-skill)。
 - 不要和 kangarooking/x-skills 搞混。
 - 官方发帖仍走官方 X 连接，由 X运营官执行；不通过浏览器登录 x.com，也不经品牌调性调研师。
+- 每周 4 条轮换池 + 2 条推特爆款，等排期工具启用后再装进去。启用之前，现行排期就是 `results/X-CONTENT-SCHEDULE-2026-11-11.md`。
 
 ## 红线
 
