@@ -1,0 +1,420 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="今日学习">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="theme-color" content="#2f5d50">
+<title>今日学习待办</title>
+<style>
+  :root {
+    --bg: #f3efe6;
+    --paper: #fffdf8;
+    --ink: #1f1b16;
+    --muted: #6b6258;
+    --line: #e6dfd3;
+    --accent: #2f5d50;
+    --accent-soft: #e7f1ed;
+    --done: #8a8378;
+    --rest: #8b5e3c;
+    --cet: #3d4c7d;
+    --cet-soft: #e8ebf6;
+    --exam: #8a3b3b;
+    --exam-soft: #f3e0e0;
+    --ok: #2f5d50;
+    --warn: #8b5e3c;
+    --pad: 16px;
+    --tap: 44px;
+  }
+  * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+  html, body { margin: 0; padding: 0; }
+  body {
+    min-height: 100vh;
+    min-height: 100dvh;
+    font-family: "Segoe UI", "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", system-ui, sans-serif;
+    background:
+      radial-gradient(1200px 500px at 10% -10%, #efe7d6 0%, transparent 55%),
+      var(--bg);
+    color: var(--ink);
+    padding: env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left);
+  }
+  .wrap {
+    width: min(720px, 100%);
+    margin: 0 auto;
+    padding: 20px var(--pad) 40px;
+  }
+  header h1 {
+    margin: 0 0 4px;
+    font-size: clamp(22px, 5.5vw, 28px);
+    font-weight: 700;
+    letter-spacing: 0.02em;
+    line-height: 1.25;
+  }
+  .meta { color: var(--muted); font-size: 14px; line-height: 1.5; margin: 0 0 8px; }
+  .sync {
+    display: flex; align-items: center; justify-content: space-between; gap: 8px;
+    flex-wrap: wrap; font-size: 13px; color: var(--muted); margin-bottom: 16px;
+  }
+  .sync .dot { width: 8px; height: 8px; border-radius: 50%; background: #c4b8a8; display: inline-block; margin-right: 6px; }
+  .sync.ok .dot { background: var(--ok); }
+  .sync.wait .dot { background: #c9a227; }
+  .sync.err .dot { background: var(--exam); }
+  .card {
+    background: var(--paper);
+    border: 1px solid var(--line);
+    border-radius: 18px;
+    padding: 18px 16px 14px;
+    box-shadow: 0 8px 24px rgba(60, 40, 20, 0.06);
+    margin-bottom: 12px;
+  }
+  .course { font-size: clamp(18px, 4.6vw, 22px); font-weight: 700; margin: 0 0 4px; line-height: 1.3; }
+  .resource, .note { color: var(--muted); font-size: 13px; margin: 0 0 12px; line-height: 1.55; }
+  .block { margin: 0 0 12px; font-size: 15px; line-height: 1.65; }
+  .block b { font-weight: 650; }
+  .tasks { list-style: none; padding: 0; margin: 4px 0 0; }
+  .tasks li {
+    display: flex; gap: 12px; align-items: flex-start;
+    min-height: var(--tap);
+    padding: 10px 2px;
+    border-top: 1px solid var(--line);
+  }
+  .tasks label {
+    flex: 1; cursor: pointer; font-size: 16px; line-height: 1.5;
+    padding-top: 10px; padding-bottom: 10px;
+  }
+  input[type="checkbox"] {
+    appearance: none; -webkit-appearance: none;
+    width: 24px; height: 24px; min-width: 24px;
+    margin: 10px 0 0;
+    border: 2px solid var(--accent);
+    border-radius: 7px;
+    background: #fff;
+    cursor: pointer;
+    position: relative;
+  }
+  .cet-card input[type="checkbox"] { border-color: var(--cet); }
+  input[type="checkbox"]:checked {
+    background: var(--accent);
+    border-color: var(--accent);
+  }
+  .cet-card input[type="checkbox"]:checked {
+    background: var(--cet);
+    border-color: var(--cet);
+  }
+  input[type="checkbox"]:checked::after {
+    content: "";
+    position: absolute; left: 6px; top: 2px;
+    width: 7px; height: 12px;
+    border: solid #fff; border-width: 0 2.5px 2.5px 0;
+    transform: rotate(45deg);
+  }
+  input[type="checkbox"]:focus-visible { outline: 3px solid rgba(47,93,80,.35); outline-offset: 2px; }
+  .tasks li.done label { color: var(--done); text-decoration: line-through; }
+  .progress { margin-top: 12px; color: var(--muted); font-size: 13px; }
+  .nav {
+    display: grid;
+    grid-template-columns: 1fr auto 1fr;
+    gap: 8px;
+    margin-top: 8px;
+    position: sticky; bottom: 0;
+    padding: 10px 0 calc(8px + env(safe-area-inset-bottom));
+    background: linear-gradient(to top, var(--bg) 70%, transparent);
+  }
+  button {
+    min-height: var(--tap);
+    background: var(--accent-soft); color: var(--accent);
+    border: 0; border-radius: 12px; padding: 8px 12px;
+    font-size: 15px; cursor: pointer; font-family: inherit;
+  }
+  button:disabled { opacity: 0.4; cursor: default; }
+  #todayBtn { font-weight: 650; }
+  .copy-btn { min-height: 36px; padding: 6px 10px; font-size: 13px; }
+  .badge {
+    display: inline-block; background: var(--accent-soft); color: var(--accent);
+    border-radius: 999px; padding: 2px 10px; font-size: 12px; margin-bottom: 10px;
+  }
+  .badge.rest { background: #f4e6d8; color: var(--rest); }
+  .badge.exam { background: var(--exam-soft); color: var(--exam); }
+  .badge.cet { background: var(--cet-soft); color: var(--cet); }
+  .tips { margin-top: 10px; font-size: 13px; color: var(--muted); line-height: 1.6; }
+  footer { margin-top: 8px; color: var(--muted); font-size: 13px; line-height: 1.6; }
+  @media (min-width: 800px) {
+    .wrap { padding: 36px 24px 64px; }
+    .card { padding: 24px 24px 18px; }
+    .nav { position: static; background: none; padding: 8px 0 0; }
+  }
+</style>
+</head>
+<body>
+  <div class="wrap">
+    <header>
+      <h1>今日学习待办</h1>
+      <div class="meta" id="dateLine"></div>
+      <div class="sync" id="syncLine"><span><span class="dot"></span><span id="syncText">正在准备</span></span><button type="button" class="copy-btn" id="copyBtn">复制本页链接</button></div>
+    </header>
+    <div id="cards"></div>
+    <div class="nav">
+      <button id="prevBtn" type="button">前一天</button>
+      <button id="todayBtn" type="button">回到今天</button>
+      <button id="nextBtn" type="button">后一天</button>
+    </div>
+    <footer id="foot">每天上午 10:00 开始。勾选会先存在这台设备上，联网后与手机和电脑同步。</footer>
+  </div>
+  <script>
+  const PLAN = {"title":"2026 秋学期五周学习计划（修订，已并入豆包四级表）","timezone":"Asia/Shanghai","block_start":"10:00","start":"2026-11-19","end":"2026-12-24","cet4_goal":"模考稳定 440+，考场发挥稳健过 425","cet4_exam_tips":["选词填空永远放最后，没时间就蒙","听力边听边涂卡，别挤到最后","写译先保证句子正确，不硬堆难句","错题二刷比疯狂刷新卷更重要","别断一天，状态比时长重要"],"days":[{"date":"2026-11-19","weekday":"星期四","kind":"study","course":"线性代数","resource":"宋浩老师官方《线性代数》教学视频 2.0版（增加了同济版），从同济版 P49 起","watch":"同济版 P49–P51（二阶方程组与二阶行列式、三阶行列式、全排列和对换）","target":"看完这三集，能手算二、三阶行列式，并理解排列与对换。主课控制在约 1 到 1.5 小时，给四级留 25 到 40 分钟。","tasks":["观看同济版 P49–P51","整理行列式定义与计算笔记，做 2～3 道练习"],"cet4":{"course":"大学英语四级","theme":"错题二刷日（本周起点）","source":"豆包「考前27天冲刺」表","watch":"按豆包表今天本该二刷周一、周二阅读错题，但冲刺刚开始还没有这些错题。改做一套听力新题（限时），只标出错题位置，留给下周三、四复盘。","target":"留下第一批可复盘的错题，不急着二刷空账本。","tasks":["听力一套新题，限时做完","只标出错题位置，留给下周三复盘、下周四二刷"],"note":"按豆包表的周循环来，但放到上午 10 点和课程块一起做，只取「早起核心」任务，大约 40 到 50 分钟。原表还有早 6:30 和晚上 30–40 分钟，和 10 点课程叠在一起会过载，所以晚上巩固标成可选。","optional_evening":{"watch":"可选晚上 40 分钟：若还有精力，再限时做 1 篇仔细阅读并记下错因。","tasks":["（可选）限时做 1 篇仔细阅读，记下错因"]}}},{"date":"2026-11-20","weekday":"星期五","kind":"study","course":"概率统计","resource":"曹一轩《【概率论与数理统计】（浙大版）正课》","watch":"浙大版 P02–P04（第1章：随机试验、样本空间与随机事件、频率与概率）","target":"建立第1章前半的基本语言。主课约 1 到 1.5 小时。","tasks":["观看 P02–P04","写下事件运算和概率定义，做章内简单例题"],"cet4":{"course":"大学英语四级","theme":"写译复习日（轻量）","source":"豆包「考前27天冲刺」表","watch":"按豆包表周五减量：回看本周作文和翻译的好句，背 3 组万能开头、转折、结尾句；再快速过一遍本周生词，听 10 分钟听力刷耳朵。周五不加量。","target":"只复习、不新开大项。","tasks":["回看本周作文 + 翻译里炼过的好句","背 3 组万能开头 / 转折 / 结尾句","快速过一遍本周全部生词","听 10 分钟听力音频刷耳朵"],"note":"按豆包表的周循环来，但放到上午 10 点和课程块一起做，只取「早起核心」任务，大约 40 到 50 分钟。原表还有早 6:30 和晚上 30–40 分钟，和 10 点课程叠在一起会过载，所以晚上巩固标成可选。"}},{"date":"2026-11-21","weekday":"星期六","kind":"study","course":"统计学原理","resource":"红尘过客呀呀《【统计学】西南财经大学丨含课件》","watch":"西财课 P01–P03（第一章：统计学简介、什么是统计、基本概念和范畴）","target":"弄清总体、样本、指标等基本用语。","tasks":["观看第一章 P01–P03","用自己的话记下本章基本概念"],"cet4":{"course":"大学英语四级","theme":"周末模考前日（轻量不断档）","source":"豆包「考前27天冲刺」表","note":"豆包表是周六或周日二选一做整套模考。本计划把整套放在周日 9:00，周六只做短巩固，避免一天断档，也不在周末连考两套。","watch":"短巩固：过一遍本周真题生词，再听 10 分钟听力音频。整套真题留给明天 9:00。","target":"保持状态，不新开大项，把精力留给明天模考。","tasks":["过一遍本周真题生词","听 10 分钟听力音频刷耳朵"]}},{"date":"2026-11-22","weekday":"星期日","kind":"light","course":"外贸口语","resource":"学习资源充电站《全54节【实用商务英语口语】场景演绎-外贸和职场》","watch":"P01–P08（外贸专题：谈价格、产品介绍、工作汇报、砍价、售后、客户冲突、逾期付款、生产延期） 建议放到 9:00 整套模考之后，仍有余力再跟读；没余力可改到晚上或下周。","target":"今天优先完成四级整套模考。周日较轻：只跟读这 8 个短场景，再加四级词汇。不排数学新课。","tasks":["（可选，模考后有余力再做）观看并跟读 P01–P08（约 1 小时）","（可选，模考后有余力再做）每个场景口头复述 1 遍"],"cet4":{"course":"大学英语四级","theme":"周末整套真题模考","source":"豆包「考前27天冲刺」表","watch":"按豆包表：周六或周日 9:00 开始，整套真题限时模考（涂满卡）。今天的课程块放到模考之后、仍有余力再做，不必硬凑。","target":"目标：模考稳定 440+，考场发挥稳健过 425。","tasks":["上午 9:00 开始整套真题，限时做完并涂满卡","对答案，登记总分和各部分错题，留给下周一到周四复盘"],"note":"整套模考大约两个小时，比平时的四级短块长。9 点先模考，10 点的课程可以后移或改成可选。"}},{"date":"2026-11-23","weekday":"星期一","kind":"study","course":"线性代数","resource":"宋浩老师官方《线性代数》教学视频 2.0版（增加了同济版），从同济版 P49 起","watch":"同济版 P52–P54（n 阶行列式的定义、行列式性质 1、性质 2）","target":"掌握 n 阶行列式定义和常用性质，能用性质化简。","tasks":["观看同济版 P52–P54","用性质计算 2～3 个行列式"],"cet4":{"course":"大学英语四级","theme":"听力精听日","source":"豆包「考前27天冲刺」表","watch":"核心：一套真题听力，限时 25 分钟做完；再对照原文精听错题，标出 but / however 等答案句。","target":"先把听力打稳。错题要听到能标出答案句。","tasks":["一套真题听力，限时 25 分钟做完","对照原文精听错题，标出 but / however 答案句"],"note":"按豆包表的周循环来，但放到上午 10 点和课程块一起做，只取「早起核心」任务，大约 40 到 50 分钟。原表还有早 6:30 和晚上 30–40 分钟，和 10 点课程叠在一起会过载，所以晚上巩固标成可选。","optional_evening":{"watch":"可选晚上 40 分钟：仔细阅读 2 篇（计时）+ 整理生词，只记真题里出现的。课程块已经较长时，今晚可以不做。","tasks":["（可选）仔细阅读 2 篇，计时做","（可选）整理生词，只记真题里出现的"]}}},{"date":"2026-11-24","weekday":"星期二","kind":"study","course":"概率统计","resource":"曹一轩《【概率论与数理统计】（浙大版）正课》","watch":"浙大版 P05–P07（古典概型、条件概率、全概率公式）","target":"会算古典概型，并能用条件概率和全概率公式解基本题。","tasks":["观看 P05–P07","各做 1～2 道古典概型、条件概率、全概率题"],"cet4":{"course":"大学英语四级","theme":"阅读攻坚日","source":"豆包「考前27天冲刺」表","watch":"核心：仔细阅读 2 篇 + 长篇匹配 1 篇（选词填空路过）；复盘定位句，记同义替换。阅读分值最高，别在选词填空上耗时间。","target":"能根据定位句和同义替换说明对错。选词填空不做或放最后。","tasks":["仔细阅读 2 篇 + 长篇匹配 1 篇（选词填空路过）","复盘定位句，记同义替换"],"note":"按豆包表的周循环来，但放到上午 10 点和课程块一起做，只取「早起核心」任务，大约 40 到 50 分钟。原表还有早 6:30 和晚上 30–40 分钟，和 10 点课程叠在一起会过载，所以晚上巩固标成可选。","optional_evening":{"watch":"可选晚上 40 分钟：限时写一篇真题作文 30 分钟，自查时态、单复数、冠词。","tasks":["（可选）限时写一篇真题作文 30 分钟","（可选）自查时态 / 单复数 / 冠词"]}}},{"date":"2026-11-25","weekday":"星期三","kind":"study","course":"统计学原理","resource":"红尘过客呀呀《【统计学】西南财经大学丨含课件》","watch":"西财课 P04–P06（第二章：统计数据及其种类、数据收集、统计调查方式）","target":"能区分数据类型，并说明常见调查方式。","tasks":["观看第二章 P04–P06","列出数据类型和调查方式对照表"],"cet4":{"course":"大学英语四级","theme":"听力复盘日","source":"豆包「考前27天冲刺」表","watch":"核心：重听重做本周一的听力错题（不看原文）；循环背真题生词，不猛学新词书。错题重做一遍，比做两套新题还值。","target":"周一的错题能在不看原文的情况下做对，生词只循环真题里的。","tasks":["重听重做周一错题（不看原文）","循环背真题生词，不猛学新词书"],"note":"按豆包表的周循环来，但放到上午 10 点和课程块一起做，只取「早起核心」任务，大约 40 到 50 分钟。原表还有早 6:30 和晚上 30–40 分钟，和 10 点课程叠在一起会过载，所以晚上巩固标成可选。","optional_evening":{"watch":"可选晚上 40 分钟：限时做一段翻译 30 分钟，对照参考译文记固定表达。","tasks":["（可选）限时做一段翻译 30 分钟","（可选）对照参考译文，记固定表达"]}}},{"date":"2026-11-26","weekday":"星期四","kind":"study","course":"思想道德与法治","resource":"老张陪学《思想道德与法治（23版）》","watch":"P01–P02（绪论；第一章 领悟人生真谛 把握人生方向）","target":"过完绪论和第一章。第一章较长，主课接近 1.5 到 2 小时，四级只做短词汇，避免当天过载。","tasks":["观看 P01 绪论和 P02 第一章","按教材页码写出本章 3 个可背要点"],"cet4":{"course":"大学英语四级","theme":"错题二刷日","source":"豆包「考前27天冲刺」表","watch":"核心：二刷本周一、周二的阅读错题，独立重做；总结自己常掉的坑（偷换概念、范围扩大等）。找出固定错题套路，考场才不会再错。","target":"错题能独立做对，并写下自己的常见坑。","tasks":["二刷周一、周二阅读错题，独立重做","总结自己常掉的坑（偷换概念？范围扩大？）"],"note":"按豆包表的周循环来，但放到上午 10 点和课程块一起做，只取「早起核心」任务，大约 40 到 50 分钟。原表还有早 6:30 和晚上 30–40 分钟，和 10 点课程叠在一起会过载，所以晚上巩固标成可选。","optional_evening":{"watch":"可选晚上 40 分钟：听力一套新题限时，只标错题位置，精听留到明早（或周三）。","tasks":["（可选）听力一套新题，限时","（可选）只标错题位置，精听留到下次听力日"]}}},{"date":"2026-11-27","weekday":"星期五","kind":"study","course":"线性代数","resource":"宋浩老师官方《线性代数》教学视频 2.0版（增加了同济版），从同济版 P49 起","watch":"同济版 P55–P57（行列式按行/列展开、线性方程组和矩阵、矩阵的定义）","target":"会按行或列展开行列式，并进入矩阵的基本定义。","tasks":["观看同济版 P55–P57","做展开计算和矩阵定义相关练习"],"cet4":{"course":"大学英语四级","theme":"写译复习日（轻量）","source":"豆包「考前27天冲刺」表","watch":"按豆包表周五减量：回看本周作文和翻译的好句，背 3 组万能开头、转折、结尾句；再快速过一遍本周生词，听 10 分钟听力刷耳朵。周五不加量。","target":"只复习、不新开大项。","tasks":["回看本周作文 + 翻译里炼过的好句","背 3 组万能开头 / 转折 / 结尾句","快速过一遍本周全部生词","听 10 分钟听力音频刷耳朵"],"note":"按豆包表的周循环来，但放到上午 10 点和课程块一起做，只取「早起核心」任务，大约 40 到 50 分钟。原表还有早 6:30 和晚上 30–40 分钟，和 10 点课程叠在一起会过载，所以晚上巩固标成可选。"}},{"date":"2026-11-28","weekday":"星期六","kind":"study","course":"形势与政策","resource":"反馈系统《清华大学2024秋季学期“形势与政策”课程》","watch":"第1讲：中国式现代化导论","target":"看完第1讲并记下提纲。这套是清华 2024 秋公开课，和当前学期专题可能不完全一致。","tasks":["观看第1讲（约 1.5–2 小时）","用几句话写下本讲提纲"],"cet4":{"course":"大学英语四级","theme":"周末模考前日（轻量不断档）","source":"豆包「考前27天冲刺」表","note":"豆包表是周六或周日二选一做整套模考。本计划把整套放在周日 9:00，周六只做短巩固，避免一天断档，也不在周末连考两套。","watch":"短巩固：过一遍本周真题生词，再听 10 分钟听力音频。整套真题留给明天 9:00。","target":"保持状态，不新开大项，把精力留给明天模考。","tasks":["过一遍本周真题生词","听 10 分钟听力音频刷耳朵"]}},{"date":"2026-11-29","weekday":"星期日","kind":"light","course":"外贸口语","resource":"学习资源充电站《全54节【实用商务英语口语】场景演绎-外贸和职场》","watch":"P09–P18（邮件专题，以及入职面试开场到文化契合度相关分集） 建议放到 9:00 整套模考之后，仍有余力再跟读；没余力可改到晚上或下周。","target":"今天优先完成四级整套模考。周日较轻：跟读邮件和面试常用表达，再加四级翻译或写作短练。","tasks":["（可选，模考后有余力再做）观看并跟读 P09–P18（约 1–1.5 小时）","（可选，模考后有余力再做）口头练习面试开场和一封短邮件开头"],"cet4":{"course":"大学英语四级","theme":"周末整套真题模考","source":"豆包「考前27天冲刺」表","watch":"按豆包表：周六或周日 9:00 开始，整套真题限时模考（涂满卡）。今天的课程块放到模考之后、仍有余力再做，不必硬凑。","target":"目标：模考稳定 440+，考场发挥稳健过 425。","tasks":["上午 9:00 开始整套真题，限时做完并涂满卡","对答案，登记总分和各部分错题，留给下周一到周四复盘"],"note":"整套模考大约两个小时，比平时的四级短块长。9 点先模考，10 点的课程可以后移或改成可选。"}},{"date":"2026-11-30","weekday":"星期一","kind":"study","course":"概率统计","resource":"曹一轩《【概率论与数理统计】（浙大版）正课》","watch":"浙大版 P08–P10（贝叶斯公式、独立性、第2章随机变量）","target":"掌握贝叶斯和独立性，并进入随机变量的概念。","tasks":["观看 P08–P10","做 1～2 道贝叶斯或独立性题，并写下随机变量定义"],"cet4":{"course":"大学英语四级","theme":"听力精听日","source":"豆包「考前27天冲刺」表","watch":"核心：一套真题听力，限时 25 分钟做完；再对照原文精听错题，标出 but / however 等答案句。","target":"先把听力打稳。错题要听到能标出答案句。","tasks":["一套真题听力，限时 25 分钟做完","对照原文精听错题，标出 but / however 答案句"],"note":"按豆包表的周循环来，但放到上午 10 点和课程块一起做，只取「早起核心」任务，大约 40 到 50 分钟。原表还有早 6:30 和晚上 30–40 分钟，和 10 点课程叠在一起会过载，所以晚上巩固标成可选。","optional_evening":{"watch":"可选晚上 40 分钟：仔细阅读 2 篇（计时）+ 整理生词，只记真题里出现的。课程块已经较长时，今晚可以不做。","tasks":["（可选）仔细阅读 2 篇，计时做","（可选）整理生词，只记真题里出现的"]}}},{"date":"2026-12-01","weekday":"星期二","kind":"study","course":"统计学原理","resource":"红尘过客呀呀《【统计学】西南财经大学丨含课件》","watch":"西财课 P07–P09（第二章后半：分布数列、统计与其他学科、统计图和统计表）","target":"能读懂并动手画基本统计图、统计表。","tasks":["观看 P07–P09","根据一例数据草拟一张统计表或简图"],"cet4":{"course":"大学英语四级","theme":"阅读攻坚日","source":"豆包「考前27天冲刺」表","watch":"核心：仔细阅读 2 篇 + 长篇匹配 1 篇（选词填空路过）；复盘定位句，记同义替换。阅读分值最高，别在选词填空上耗时间。","target":"能根据定位句和同义替换说明对错。选词填空不做或放最后。","tasks":["仔细阅读 2 篇 + 长篇匹配 1 篇（选词填空路过）","复盘定位句，记同义替换"],"note":"按豆包表的周循环来，但放到上午 10 点和课程块一起做，只取「早起核心」任务，大约 40 到 50 分钟。原表还有早 6:30 和晚上 30–40 分钟，和 10 点课程叠在一起会过载，所以晚上巩固标成可选。","optional_evening":{"watch":"可选晚上 40 分钟：限时写一篇真题作文 30 分钟，自查时态、单复数、冠词。","tasks":["（可选）限时写一篇真题作文 30 分钟","（可选）自查时态 / 单复数 / 冠词"]}}},{"date":"2026-12-02","weekday":"星期三","kind":"study","course":"马克思主义基本原理","resource":"老张陪学《马克思主义原理教材精讲（23版）》","watch":"P01–P03（导论：什么是马克思主义、创立和发展、基本特征）","target":"完成导论三讲。62 讲无法全部看完，先把导论和后面的第一章主线推进。","tasks":["观看导论 P01–P03","按页码列出导论可背提纲"],"cet4":{"course":"大学英语四级","theme":"听力复盘日","source":"豆包「考前27天冲刺」表","watch":"核心：重听重做本周一的听力错题（不看原文）；循环背真题生词，不猛学新词书。错题重做一遍，比做两套新题还值。","target":"周一的错题能在不看原文的情况下做对，生词只循环真题里的。","tasks":["重听重做周一错题（不看原文）","循环背真题生词，不猛学新词书"],"note":"按豆包表的周循环来，但放到上午 10 点和课程块一起做，只取「早起核心」任务，大约 40 到 50 分钟。原表还有早 6:30 和晚上 30–40 分钟，和 10 点课程叠在一起会过载，所以晚上巩固标成可选。","optional_evening":{"watch":"可选晚上 40 分钟：限时做一段翻译 30 分钟，对照参考译文记固定表达。","tasks":["（可选）限时做一段翻译 30 分钟","（可选）对照参考译文，记固定表达"]}}},{"date":"2026-12-03","weekday":"星期四","kind":"study","course":"线性代数","resource":"宋浩老师官方《线性代数》教学视频 2.0版（增加了同济版），从同济版 P49 起","watch":"同济版 P58–P60（矩阵的加法、数乘、矩阵的乘法）","target":"熟练矩阵加法和乘法规则，能判断何时可乘。","tasks":["观看同济版 P58–P60","手算 3 道矩阵加法或乘法"],"cet4":{"course":"大学英语四级","theme":"错题二刷日","source":"豆包「考前27天冲刺」表","watch":"核心：二刷本周一、周二的阅读错题，独立重做；总结自己常掉的坑（偷换概念、范围扩大等）。找出固定错题套路，考场才不会再错。","target":"错题能独立做对，并写下自己的常见坑。","tasks":["二刷周一、周二阅读错题，独立重做","总结自己常掉的坑（偷换概念？范围扩大？）"],"note":"按豆包表的周循环来，但放到上午 10 点和课程块一起做，只取「早起核心」任务，大约 40 到 50 分钟。原表还有早 6:30 和晚上 30–40 分钟，和 10 点课程叠在一起会过载，所以晚上巩固标成可选。","optional_evening":{"watch":"可选晚上 40 分钟：听力一套新题限时，只标错题位置，精听留到明早（或周三）。","tasks":["（可选）听力一套新题，限时","（可选）只标错题位置，精听留到下次听力日"]}}},{"date":"2026-12-04","weekday":"星期五","kind":"study","course":"形势与政策","resource":"反馈系统《清华大学2024秋季学期“形势与政策”课程》","watch":"第2讲：土木工程的创新与实践","target":"看完第2讲。本讲偏清华专业案例，取其方法与要点即可。主课较长，四级只做短复习。","tasks":["观看第2讲","记下本讲 3 个要点"],"cet4":{"course":"大学英语四级","theme":"写译复习日（轻量）","source":"豆包「考前27天冲刺」表","watch":"按豆包表周五减量：回看本周作文和翻译的好句，背 3 组万能开头、转折、结尾句；再快速过一遍本周生词，听 10 分钟听力刷耳朵。周五不加量。","target":"只复习、不新开大项。","tasks":["回看本周作文 + 翻译里炼过的好句","背 3 组万能开头 / 转折 / 结尾句","快速过一遍本周全部生词","听 10 分钟听力音频刷耳朵"],"note":"按豆包表的周循环来，但放到上午 10 点和课程块一起做，只取「早起核心」任务，大约 40 到 50 分钟。原表还有早 6:30 和晚上 30–40 分钟，和 10 点课程叠在一起会过载，所以晚上巩固标成可选。"}},{"date":"2026-12-05","weekday":"星期六","kind":"study","course":"概率统计","resource":"曹一轩《【概率论与数理统计】（浙大版）正课》","watch":"浙大版 P11–P13（二项分布、泊松与几何分布、随机变量的分布函数）","target":"能识别二项、泊松、几何分布，并理解分布函数。","tasks":["观看 P11–P13","各写一个分布的定义、参数和适用情境"],"cet4":{"course":"大学英语四级","theme":"周末模考前日（轻量不断档）","source":"豆包「考前27天冲刺」表","note":"豆包表是周六或周日二选一做整套模考。本计划把整套放在周日 9:00，周六只做短巩固，避免一天断档，也不在周末连考两套。","watch":"短巩固：过一遍本周真题生词，再听 10 分钟听力音频。整套真题留给明天 9:00。","target":"保持状态，不新开大项，把精力留给明天模考。","tasks":["过一遍本周真题生词","听 10 分钟听力音频刷耳朵"]}},{"date":"2026-12-06","weekday":"星期日","kind":"light","course":"形势与政策","resource":"反馈系统《清华大学2024秋季学期“形势与政策”课程》","watch":"第3讲：共同富裕的大格局。建议放到 9:00 整套模考之后，仍有余力再看；没余力可改到周一补看提纲。","target":"今天优先完成四级整套模考。形策第3讲能看则看，不和模考抢精力。","tasks":["（可选，模考后有余力再看）观看形势与政策第3讲","（可选）写下本讲提纲"],"cet4":{"course":"大学英语四级","theme":"周末整套真题模考","source":"豆包「考前27天冲刺」表","watch":"按豆包表：周六或周日 9:00 开始，整套真题限时模考（涂满卡）。今天的课程块放到模考之后、仍有余力再做，不必硬凑。","target":"这是考前最后一次整套模考。","tasks":["上午 9:00 开始整套真题，限时做完并涂满卡","对答案，登记总分和各部分错题，留给下周一到周四复盘"],"note":"整套模考大约两个小时，比平时的四级短块长。9 点先模考，10 点的课程可以后移或改成可选。"}},{"date":"2026-12-07","weekday":"星期一","kind":"study","course":"统计学原理","resource":"红尘过客呀呀《【统计学】西南财经大学丨含课件》","watch":"第三章描述统计开头，约 2 集（1.5–2 小时），看到满时为止并记下分集号","target":"开始总量指标与相对指标。若一集偏长，以满 2 小时为停。四级只做短词汇。","tasks":["观看第三章开头约 2 集","记下总量指标和相对指标的例子，并记录起止分集"],"cet4":{"course":"大学英语四级","theme":"听力精听日","source":"豆包「考前27天冲刺」表","watch":"核心：一套真题听力，限时 25 分钟做完；再对照原文精听错题，标出 but / however 等答案句。","target":"先把听力打稳。错题要听到能标出答案句。","tasks":["一套真题听力，限时 25 分钟做完","对照原文精听错题，标出 but / however 答案句"],"note":"按豆包表的周循环来，但放到上午 10 点和课程块一起做，只取「早起核心」任务，大约 40 到 50 分钟。原表还有早 6:30 和晚上 30–40 分钟，和 10 点课程叠在一起会过载，所以晚上巩固标成可选。","optional_evening":{"watch":"可选晚上 40 分钟：仔细阅读 2 篇（计时）+ 整理生词，只记真题里出现的。课程块已经较长时，今晚可以不做。","tasks":["（可选）仔细阅读 2 篇，计时做","（可选）整理生词，只记真题里出现的"]}}},{"date":"2026-12-08","weekday":"星期二","kind":"study","course":"思想道德与法治","resource":"老张陪学《思想道德与法治（23版）》","watch":"P03–P04（第二章 追求远大理想 坚定崇高信念；第三章 继承优良传统 弘扬中国精神）","target":"过完第二、三章。法治部分留到第 15 周以后补。","tasks":["观看 P03 和 P04","每章写出 3 个可背要点"],"cet4":{"course":"大学英语四级","theme":"阅读攻坚日","source":"豆包「考前27天冲刺」表","watch":"核心：仔细阅读 2 篇 + 长篇匹配 1 篇（选词填空路过）；复盘定位句，记同义替换。阅读分值最高，别在选词填空上耗时间。","target":"能根据定位句和同义替换说明对错。选词填空不做或放最后。","tasks":["仔细阅读 2 篇 + 长篇匹配 1 篇（选词填空路过）","复盘定位句，记同义替换"],"note":"按豆包表的周循环来，但放到上午 10 点和课程块一起做，只取「早起核心」任务，大约 40 到 50 分钟。原表还有早 6:30 和晚上 30–40 分钟，和 10 点课程叠在一起会过载，所以晚上巩固标成可选。","optional_evening":{"watch":"可选晚上 40 分钟：限时写一篇真题作文 30 分钟，自查时态、单复数、冠词。","tasks":["（可选）限时写一篇真题作文 30 分钟","（可选）自查时态 / 单复数 / 冠词"]}}},{"date":"2026-12-09","weekday":"星期三","kind":"study","course":"线性代数","resource":"宋浩老师官方《线性代数》教学视频 2.0版（增加了同济版），从同济版 P49 起","watch":"同济版 P61–P63（矩阵的转置、方阵的行列式、伴随矩阵）","target":"掌握转置、方阵行列式和伴随矩阵的关系。这是第 11–14 周线代视频的最后一块，逆矩阵放到第 15 周。","tasks":["观看同济版 P61–P63","做 2 道转置或伴随矩阵计算"],"cet4":{"course":"大学英语四级","theme":"听力复盘日","source":"豆包「考前27天冲刺」表","watch":"核心：重听重做本周一的听力错题（不看原文）；循环背真题生词，不猛学新词书。错题重做一遍，比做两套新题还值。","target":"周一的错题能在不看原文的情况下做对，生词只循环真题里的。","tasks":["重听重做周一错题（不看原文）","循环背真题生词，不猛学新词书"],"note":"按豆包表的周循环来，但放到上午 10 点和课程块一起做，只取「早起核心」任务，大约 40 到 50 分钟。原表还有早 6:30 和晚上 30–40 分钟，和 10 点课程叠在一起会过载，所以晚上巩固标成可选。","optional_evening":{"watch":"可选晚上 40 分钟：限时做一段翻译 30 分钟，对照参考译文记固定表达。","tasks":["（可选）限时做一段翻译 30 分钟","（可选）对照参考译文，记固定表达"]}}},{"date":"2026-12-10","weekday":"星期四","kind":"study","course":"马克思主义基本原理","resource":"老张陪学《马克思主义原理教材精讲（23版）》","watch":"P04–P06（第一章：哲学基本问题和物质观、物质和意识、对立统一规律）","target":"进入第一章，抓住物质观、意识关系和对立统一。","tasks":["观看 P04–P06","用自己的话写对立统一规律的要点"],"cet4":{"course":"大学英语四级","theme":"错题二刷日","source":"豆包「考前27天冲刺」表","watch":"核心：二刷本周一、周二的阅读错题，独立重做；总结自己常掉的坑（偷换概念、范围扩大等）。找出固定错题套路，考场才不会再错。","target":"错题能独立做对，并写下自己的常见坑。","tasks":["二刷周一、周二阅读错题，独立重做","总结自己常掉的坑（偷换概念？范围扩大？）"],"note":"按豆包表的周循环来，但放到上午 10 点和课程块一起做，只取「早起核心」任务，大约 40 到 50 分钟。原表还有早 6:30 和晚上 30–40 分钟，和 10 点课程叠在一起会过载，所以晚上巩固标成可选。","optional_evening":{"watch":"可选晚上 40 分钟：听力一套新题限时，只标错题位置，精听留到明早（或周三）。","tasks":["（可选）听力一套新题，限时","（可选）只标错题位置，精听留到下次听力日"]}}},{"date":"2026-12-11","weekday":"星期五","kind":"study","course":"概率统计","resource":"曹一轩《【概率论与数理统计】（浙大版）正课》","watch":"浙大版 P14–P15（连续型随机变量、均匀与指数分布）。今天主课缩短，给四级考前点题留时间。","target":"理解连续型变量和两个常见分布即可，正态分布放到第 15 周。明天是四级考试日（按你之前说的 12 月 12 日）。","tasks":["观看 P14–P15（缩短主课）","写下均匀分布和指数分布的密度与适用情境"],"cet4":{"course":"大学英语四级","theme":"写译复习日（轻量）","source":"豆包「考前27天冲刺」表","watch":"按豆包表周五减量：回看本周作文和翻译的好句，背 3 组万能开头、转折、结尾句；再快速过一遍本周生词，听 10 分钟听力刷耳朵。周五不加量。明天按你之前说的是四级考试日。周五不加量，给脑子留缓冲。","target":"只复习、不新开大项。","tasks":["回看本周作文 + 翻译里炼过的好句","背 3 组万能开头 / 转折 / 结尾句","快速过一遍本周全部生词","听 10 分钟听力音频刷耳朵","准备好证件和考试用品，不再加练，早睡"],"note":"按豆包表的周循环来，但放到上午 10 点和课程块一起做，只取「早起核心」任务，大约 40 到 50 分钟。原表还有早 6:30 和晚上 30–40 分钟，和 10 点课程叠在一起会过载，所以晚上巩固标成可选。"}},{"date":"2026-12-12","weekday":"星期六","kind":"exam","course":"大学英语四级考试","resource":"","watch":"上午不排其他课程。按你之前说的，12 月 12 日是四级考试日。","target":"按时赴考。考完再决定要不要回看其他课程笔记。如果考试时间不是这一天，告诉我，我再改计划。","tasks":["按时参加大学英语四级考试","今天不安排新的课程视频"]},{"date":"2026-12-13","weekday":"星期日","kind":"rest","course":"休息","resource":"","watch":"不安排新课，也不再排四级。","target":"四级已考完。周日休息一天，第 15 周一开始进入中国对外贸易概论复习，并继续数学。","tasks":["今天休息，不安排学习任务"]},{"date":"2026-12-14","weekday":"星期一","kind":"study","course":"中国对外贸易概论","resource":"暂无完整免费精讲课，第15–17周按考试范围直接复习","watch":"不看完整教程。对照课程大纲、课件或老师划的范围，列出本课可能考查的章节、概念和题型。","target":"先把「考什么」写清楚，再决定后面几天复习哪几块。没有完整免费精讲课，就按范围直接复习。","tasks":["找出并通读考试大纲或已有课件、笔记","列出拟考查章节和题型清单"]},{"date":"2026-12-15","weekday":"星期二","kind":"study","course":"线性代数","resource":"宋浩老师官方《线性代数》教学视频 2.0版（增加了同济版），从同济版 P49 起","watch":"同济版 P64–P66（逆矩阵及其初步应用、克拉默法则）","target":"会求逆矩阵，并能用克拉默法则解低阶方程组。后面的分块、秩、向量组和二次型仍可能看不完，考前按大纲补。","tasks":["观看同济版 P64–P66","手算 1 道求逆和 1 道克拉默法则"]},{"date":"2026-12-16","weekday":"星期三","kind":"study","course":"概率统计","resource":"曹一轩《【概率论与数理统计】（浙大版）正课》","watch":"浙大版 P16–P18（正态分布、随机变量函数的分布、伽马函数补充或第3章开头，以满 1.5–2 小时为准）","target":"会查标准正态，并理解随机变量函数的分布。估计、检验和回归仍未排完。","tasks":["观看 P16 起约三集","做 2 道正态分布或函数分布题，并记下起止分集"]},{"date":"2026-12-17","weekday":"星期四","kind":"study","course":"中国对外贸易概论","resource":"","watch":"按 14 日列出的范围，复习 1–2 个重点章节：概念、政策或贸易术语，并做对应笔记或习题。","target":"把范围内最可能考的两块先吃透，不求一天看完全书。","tasks":["精复习清单上的 1–2 个重点章节","用自己的话写出这部分可背要点或例题"]},{"date":"2026-12-18","weekday":"星期五","kind":"study","course":"统计学原理","resource":"红尘过客呀呀《【统计学】西南财经大学丨含课件》","watch":"接着 12 月 7 日记下的分集，继续第三章描述统计，约 2 集","target":"推进集中趋势或差异度量。抽样、估计、检验和回归仍需考前按大纲补。","tasks":["接着上次进度观看约 2 集","记录起止分集，并抄常用描述统计指标"]},{"date":"2026-12-19","weekday":"星期六","kind":"study","course":"思想道德与法治","resource":"老张陪学《思想道德与法治（23版）》","watch":"P05–P06（第四章 明确价值要求 践行价值准则；第五章第一节）","target":"过完第四章和第五章开头。第六章法治部分仍未看完，若考试涉及，后面几天或考前再补。","tasks":["观看 P05 和 P06","列出价值观和道德核心原则的要点"]},{"date":"2026-12-20","weekday":"星期日","kind":"light","course":"形势与政策","resource":"反馈系统《清华大学2024秋季学期“形势与政策”课程》","watch":"第4讲：碳中和：中国与世界","target":"周日只这一块。第 5–7 讲如时间不够，考前择要看提纲，不必追完。","tasks":["观看第4讲","写下本讲提纲"]},{"date":"2026-12-21","weekday":"星期一","kind":"study","course":"中国对外贸易概论","resource":"","watch":"按范围做一组复习题或过往年/课后题，专攻还不会的题型。","target":"用做题检验前两天的复习，查缺补漏。","tasks":["完成一组范围内的复习题","把不会的题型和对应章节记到清单上"]},{"date":"2026-12-22","weekday":"星期二","kind":"study","course":"马克思主义基本原理","resource":"老张陪学《马克思主义原理教材精讲（23版）》","watch":"P07–P09（第一章：量变质变和否定之否定、联系发展的五大环节、唯物辩证法的本质特征）","target":"补完第一章中间的规律和方法论。62 讲中本日之后仍有大量未看，不要在当天加班追完。","tasks":["观看 P07–P09","整理三大规律和方法论提纲"]},{"date":"2026-12-23","weekday":"星期三","kind":"study","course":"中国对外贸易概论","resource":"","watch":"收口：再过一遍考试范围提纲，只看仍不熟的部分。","target":"形成一页纸的考前提纲，不再展开新的大章。","tasks":["过一遍范围提纲，只补不熟的点","整理一页考前要点"]},{"date":"2026-12-24","weekday":"星期四","kind":"review","course":"考前轻复习","resource":"","watch":"不排新的完整课程。回看线代、概率、统计和外贸概论已整理的笔记；若当天没有考试且有余力，可选项看形势与政策第5讲。","target":"第17周考试大约在这几天。上午 10 点只做轻复习，避免在可能考试的早上赶新课。","tasks":["用 1 小时回看已学数学和外贸概论的笔记、错题","（可选）若确认当天无考试，再看形势与政策第5讲或第7讲提纲"]}]};
+  const LOCAL_KEY = "study-plan-checks-v4";
+  const SYNC_ORIGIN = window.SYNC_ORIGIN || "";
+  const DEFAULT_SYNC_KEY = window.DEFAULT_SYNC_KEY || "";
+
+  function todayStr() {
+    return new Intl.DateTimeFormat("en-CA", {
+      timeZone: PLAN.timezone,
+      year: "numeric", month: "2-digit", day: "2-digit"
+    }).format(new Date());
+  }
+  function escapeHtml(s) {
+    return String(s).replace(/[&<>"']/g, c => ({
+      "&":"&amp;","<":"&lt;",">":"&gt;","\"":"&quot;","'":"&#39;"
+    }[c]));
+  }
+  function normalizeDay(raw) {
+    const out = {};
+    if (!raw || typeof raw !== "object") return out;
+    for (const [k, v] of Object.entries(raw)) {
+      if (v && typeof v === "object" && "on" in v) {
+        out[k] = { on: !!v.on, t: Number(v.t) || 0 };
+      } else {
+        out[k] = { on: !!v, t: 0 };
+      }
+    }
+    return out;
+  }
+  function loadLocal() {
+    try {
+      const all = JSON.parse(localStorage.getItem(LOCAL_KEY) || "{}");
+      const out = {};
+      for (const [day, rec] of Object.entries(all)) out[day] = normalizeDay(rec);
+      return out;
+    } catch (e) { return {}; }
+  }
+  function saveLocal(all) {
+    localStorage.setItem(LOCAL_KEY, JSON.stringify(all));
+  }
+  function mergeStates(a, b) {
+    const out = JSON.parse(JSON.stringify(a || {}));
+    for (const [day, rec] of Object.entries(b || {})) {
+      if (!out[day]) out[day] = {};
+      for (const [k, v] of Object.entries(normalizeDay(rec))) {
+        const cur = out[day][k];
+        if (!cur || (v.t || 0) >= (cur.t || 0)) out[day][k] = v;
+      }
+    }
+    return out;
+  }
+  function getSyncKey() {
+    const q = new URLSearchParams(location.search).get("k");
+    if (q && /^[A-Za-z0-9_-]{12,80}$/.test(q)) {
+      try { localStorage.setItem("study-plan-sync-key", q); } catch (e) {}
+      return q;
+    }
+    try {
+      const saved = localStorage.getItem("study-plan-sync-key");
+      if (saved) return saved;
+    } catch (e) {}
+    return DEFAULT_SYNC_KEY || "";
+  }
+  function pageUrl() {
+    const k = getSyncKey();
+    const base = location.origin && location.origin !== "null" ? location.origin + location.pathname : "";
+    if (!base) return "";
+    return k ? (base + "?k=" + encodeURIComponent(k)) : base;
+  }
+
+  const days = PLAN.days;
+  const indexByDate = Object.fromEntries(days.map((d, i) => [d.date, i]));
+  let viewDate = todayStr();
+  if (!(viewDate in indexByDate)) {
+    if (viewDate < PLAN.start) viewDate = PLAN.start;
+    else if (viewDate > PLAN.end) viewDate = PLAN.end;
+  }
+  let checks = loadLocal();
+  let syncTimer = 0;
+  const syncKey = getSyncKey();
+  const canSync = !!(SYNC_ORIGIN && syncKey);
+
+  function setSync(kind, text) {
+    const el = document.getElementById("syncLine");
+    el.className = "sync " + kind;
+    document.getElementById("syncText").textContent = text;
+  }
+
+  async function pullRemote() {
+    if (!canSync) {
+      setSync("", "仅保存在这台设备（刷新不丢）。同一条链接才能在手机和电脑间同步。");
+      return;
+    }
+    setSync("wait", "正在同步…");
+    try {
+      const r = await fetch(SYNC_ORIGIN + "/api/state?k=" + encodeURIComponent(syncKey), { cache: "no-store" });
+      if (!r.ok) throw new Error("http " + r.status);
+      const remote = await r.json();
+      checks = mergeStates(checks, remote.checks || remote);
+      saveLocal(checks);
+      render();
+      setSync("ok", "已与云端同步，手机和电脑勾选一致。");
+    } catch (e) {
+      setSync("err", "云端暂时连不上，勾选已先存在这台设备，刷新不会丢。");
+    }
+  }
+  async function pushRemote() {
+    if (!canSync) return;
+    try {
+      const r = await fetch(SYNC_ORIGIN + "/api/state?k=" + encodeURIComponent(syncKey), {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ checks })
+      });
+      if (!r.ok) throw new Error("http " + r.status);
+      const remote = await r.json();
+      if (remote && remote.checks) {
+        checks = mergeStates(checks, remote.checks);
+        saveLocal(checks);
+      }
+      setSync("ok", "已与云端同步，手机和电脑勾选一致。");
+    } catch (e) {
+      setSync("err", "这次没同步上，勾选已存在这台设备。稍后会再试。");
+    }
+  }
+  function scheduleSync() {
+    if (!canSync) return;
+    setSync("wait", "正在保存到云端…");
+    clearTimeout(syncTimer);
+    syncTimer = setTimeout(pushRemote, 250);
+  }
+
+  function isOn(day, id) {
+    return !!(checks[day] && checks[day][id] && checks[day][id].on);
+  }
+  function setCheck(day, id, on) {
+    if (!checks[day]) checks[day] = {};
+    checks[day][id] = { on: !!on, t: Date.now() };
+    saveLocal(checks);
+    scheduleSync();
+  }
+
+  function taskList(day, prefix, tasks) {
+    return tasks.map((t, n) => {
+      const id = prefix + n;
+      const on = isOn(day, id);
+      return '<li class="' + (on ? "done" : "") + '">' +
+        '<input type="checkbox" id="' + day + "-" + id + '" data-day="' + day + '" data-k="' + id + '"' + (on ? " checked" : "") + ">" +
+        '<label for="' + day + "-" + id + '">' + escapeHtml(t) + "</label></li>";
+    }).join("");
+  }
+  function countDone(day, prefix, tasks) {
+    return tasks.filter((_, n) => isOn(day, prefix + n)).length;
+  }
+  function badgeFor(kind) {
+    if (kind === "rest") return '<div class="badge rest">休息日</div>';
+    if (kind === "review") return '<div class="badge">考前轻复习</div>';
+    if (kind === "exam") return '<div class="badge exam">考试日</div>';
+    if (kind === "light") return '<div class="badge">较轻的一天</div>';
+    return '<div class="badge">今天这一块</div>';
+  }
+
+  function render() {
+    const i = indexByDate[viewDate];
+    const day = days[i];
+    const isToday = viewDate === todayStr();
+    const mock = day.cet4 && (day.cet4.theme || "").indexOf("模考") >= 0;
+    document.getElementById("dateLine").textContent =
+      day.date + "  " + day.weekday + (isToday ? "  ·  今天" : "") +
+      (mock ? "  ·  四级模考 9:00，课程可选后移" : "  ·  上午 10:00");
+
+    const res = day.resource ? '<div class="resource">' + escapeHtml(day.resource) + "</div>" : "";
+    let html = '<div class="card">' + badgeFor(day.kind) +
+      '<div class="course">' + escapeHtml(day.course) + "</div>" + res +
+      '<div class="block"><b>今天看：</b>' + escapeHtml(day.watch) + "</div>" +
+      '<div class="block"><b>目标：</b>' + escapeHtml(day.target) + "</div>" +
+      '<ul class="tasks">' + taskList(day.date, "m", day.tasks) + "</ul>" +
+      '<div class="progress" data-progress="m">已完成 ' + countDone(day.date, "m", day.tasks) + " / " + day.tasks.length + "</div></div>";
+
+    if (day.cet4) {
+      const c = day.cet4;
+      const eve = c.optional_evening;
+      html += '<div class="card cet-card">' +
+        '<div class="badge cet">四级 · ' + escapeHtml(c.theme || "短块") + "</div>" +
+        '<div class="course">大学英语四级</div>' +
+        (c.note ? '<div class="note">' + escapeHtml(c.note) + "</div>" : "") +
+        '<div class="block"><b>今天练：</b>' + escapeHtml(c.watch) + "</div>" +
+        '<div class="block"><b>目标：</b>' + escapeHtml(c.target) + "</div>" +
+        '<ul class="tasks">' + taskList(day.date, "c", c.tasks) + "</ul>" +
+        '<div class="progress" data-progress="c">已完成 ' + countDone(day.date, "c", c.tasks) + " / " + c.tasks.length + "</div>";
+      if (eve) {
+        html += '<div class="block" style="margin-top:16px"><b>晚上巩固（可选）：</b>' + escapeHtml(eve.watch) + "</div>" +
+          '<ul class="tasks">' + taskList(day.date, "e", eve.tasks) + "</ul>" +
+          '<div class="progress" data-progress="e">可选已完成 ' + countDone(day.date, "e", eve.tasks) + " / " + eve.tasks.length + "</div>";
+      }
+      if (PLAN.cet4_exam_tips && PLAN.cet4_exam_tips.length) {
+        html += '<div class="tips">场考保命：' + PLAN.cet4_exam_tips.map(escapeHtml).join("；") + "</div>";
+      }
+      html += "</div>";
+    }
+    document.getElementById("cards").innerHTML = html;
+    document.getElementById("prevBtn").disabled = i <= 0;
+    document.getElementById("nextBtn").disabled = i >= days.length - 1;
+  }
+
+  document.getElementById("cards").addEventListener("change", ev => {
+    const el = ev.target;
+    if (!el || el.type !== "checkbox") return;
+    const day = el.getAttribute("data-day");
+    const id = el.getAttribute("data-k");
+    setCheck(day, id, el.checked);
+    const li = el.closest("li");
+    if (li) li.classList.toggle("done", el.checked);
+    const prefix = id.charAt(0);
+    const d = days[indexByDate[day]];
+    const tasks = prefix === "m" ? d.tasks : (prefix === "e" ? (d.cet4 && d.cet4.optional_evening && d.cet4.optional_evening.tasks) || [] : (d.cet4 && d.cet4.tasks) || []);
+    const bar = el.closest(".card").querySelector('[data-progress="' + prefix + '"]');
+    if (bar) {
+      const label = prefix === "e" ? "可选已完成 " : "已完成 ";
+      bar.textContent = label + countDone(day, prefix, tasks) + " / " + tasks.length;
+    }
+  });
+
+  document.getElementById("prevBtn").onclick = () => {
+    const i = indexByDate[viewDate];
+    if (i > 0) { viewDate = days[i - 1].date; render(); }
+  };
+  document.getElementById("nextBtn").onclick = () => {
+    const i = indexByDate[viewDate];
+    if (i < days.length - 1) { viewDate = days[i + 1].date; render(); }
+  };
+  document.getElementById("todayBtn").onclick = () => {
+    viewDate = todayStr();
+    if (!(viewDate in indexByDate)) {
+      if (viewDate < PLAN.start) viewDate = PLAN.start;
+      else if (viewDate > PLAN.end) viewDate = PLAN.end;
+    }
+    render();
+  };
+  document.getElementById("copyBtn").onclick = async () => {
+    const url = pageUrl();
+    if (!url) { setSync("err", "请用网上的那条链接打开，才能复制给手机。"); return; }
+    try {
+      await navigator.clipboard.writeText(url);
+      setSync("ok", "链接已复制，发给手机打开即可同步勾选。");
+    } catch (e) {
+      window.prompt("复制这条链接到手机打开：", url);
+    }
+  };
+
+  render();
+  pullRemote();
+  </script>
+</body>
+</html>
